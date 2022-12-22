@@ -1,0 +1,369 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "api/rpcscout.proto",
+        "version": "version not set"
+    },
+    "tags": [
+        {
+            "name": "Scout"
+        },
+        {
+            "name": "ScoutIdentity"
+        }
+    ],
+    "paths": {
+        "/apis/scout/v1/data": {
+            "get": {
+                "operationId": "Scout_List",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcscoutScoutListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "client.id",
+                        "description": "Set by the client to be used by the server on response",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "client.clientName",
+                        "description": "Name of the client",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "client.timestamp",
+                        "description": "Timestamp when the request was sent",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Scout"
+                ]
+            },
+            "delete": {
+                "operationId": "Scout_Delete",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcscoutScoutDeleteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "client.id",
+                        "description": "Set by the client to be used by the server on response",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "client.clientName",
+                        "description": "Name of the client",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "client.timestamp",
+                        "description": "Timestamp when the request was sent",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "deleteId",
+                        "description": "Fake id to delete",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Scout"
+                ]
+            }
+        },
+        "/apis/scout/v1/ping": {
+            "post": {
+                "operationId": "Scout_Ping",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcscoutScoutPingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/rpcscoutScoutPingRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "tags": [
+                    "Scout"
+                ]
+            }
+        },
+        "/v1/identity/version": {
+            "get": {
+                "operationId": "ScoutIdentity_Version",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcscoutScoutIdentityVersionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ScoutIdentity"
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "protobufAny": {
+                "type": "object",
+                "properties": {
+                    "@type": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": {}
+            },
+            "rpcStatus": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/protobufAny"
+                        }
+                    }
+                }
+            },
+            "rpcscoutClientInfo": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Set by the client to be used by the server on response"
+                    },
+                    "clientName": {
+                        "type": "string",
+                        "title": "Name of the client"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Timestamp when the request was sent"
+                    }
+                },
+                "title": "Used to track information from the client in the logs"
+            },
+            "rpcscoutScoutDeleteResponse": {
+                "type": "object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/components/schemas/rpcscoutServerInfo"
+                    }
+                },
+                "title": "Empty response"
+            },
+            "rpcscoutScoutIdentityVersionResponse": {
+                "type": "object",
+                "properties": {
+                    "ScoutVersion": {
+                        "$ref": "#/components/schemas/rpcscoutScoutVersion"
+                    }
+                },
+                "title": "Defines the response to version"
+            },
+            "rpcscoutScoutListResponse": {
+                "type": "object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/components/schemas/rpcscoutServerInfo"
+                    },
+                    "list": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": "List of stuff"
+                    }
+                }
+            },
+            "rpcscoutScoutPingRequest": {
+                "type": "object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/components/schemas/rpcscoutClientInfo"
+                    }
+                }
+            },
+            "rpcscoutScoutPingResponse": {
+                "type": "object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/components/schemas/rpcscoutServerInfo"
+                    }
+                }
+            },
+            "rpcscoutScoutStreamDataResponse": {
+                "type": "object",
+                "properties": {
+                    "server": {
+                        "$ref": "#/components/schemas/rpcscoutServerInfo"
+                    },
+                    "randomNumber": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Random data"
+                    }
+                }
+            },
+            "rpcscoutScoutVersion": {
+                "type": "object",
+                "properties": {
+                    "major": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version major number"
+                    },
+                    "minor": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version minor number"
+                    },
+                    "patch": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version patch number"
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "String representation of the version. Must be\nin `major.minor.patch` format."
+                    }
+                },
+                "description": "Scout version in Major.Minor.Patch format. The goal of this\nmessage is to provide clients a method to determine the server\nand client versions."
+            },
+            "rpcscoutServerInfo": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "client id"
+                    },
+                    "serverName": {
+                        "type": "string",
+                        "title": "server name"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Timestamp when the server replied"
+                    }
+                }
+            }
+        }
+    }
+}

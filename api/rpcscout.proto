@@ -1,0 +1,186 @@
+// Please use the following editor setup for this file:
+// Tab size=2; Tabs as spaces; Clean up trailing whitepsace
+//
+// In vim add: au FileType proto setl sw=2 ts=2 expandtab list
+//
+// In vscode install vscode-proto3 extension and add this to your settings.json:
+//    "[proto3]": {
+//        "editor.tabSize": 2,
+//        "editor.insertSpaces": true,
+//        "editor.rulers": [80],
+//        "editor.detectIndentation": true,
+//        "files.trimTrailingWhitespace": true
+//    }
+//
+// Copyright 2022 Luis Pabon
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+package rpcscout;
+
+option go_package = "./api;api";
+option java_multiple_files = true;
+option java_package = "com.Scout.api";
+
+service Scout {
+  rpc Ping (ScoutPingRequest)
+    returns (ScoutPingResponse) {
+      option(google.api.http) = {
+        post: "/apis/scout/v1/ping"
+        body: "*"
+      };
+    }
+
+  rpc List(ScoutListRequest)
+    returns (ScoutListResponse) {
+      option(google.api.http) = {
+        get: "/apis/scout/v1/data"
+      };
+    }
+
+  rpc Delete(ScoutDeleteRequest)
+    returns (ScoutDeleteResponse) {
+      option(google.api.http) = {
+        delete: "/apis/scout/v1/data"
+      };
+    }
+
+  rpc StreamData(ScoutStreamDataRequest)
+    returns (stream ScoutStreamDataResponse) {}
+}
+
+// Used to track information from the client in the logs
+message ClientInfo {
+  // Set by the client to be used by the server on response
+  string id = 1;
+  // Name of the client
+  string client_name = 2;
+  // Timestamp when the request was sent
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message ServerInfo {
+  // client id
+  string id = 1;
+  // server name
+  string server_name = 2;
+  // Timestamp when the server replied
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+// Empty request
+message ScoutListRequest {
+  // Information about the requester
+  ClientInfo client = 1;
+}
+
+message ScoutListResponse {
+  // Server information
+  ServerInfo server = 1;
+  // List of stuff
+  repeated string list = 2;
+}
+
+message ScoutDeleteRequest {
+  // Information about the requester
+  ClientInfo client = 1;
+  // Fake id to delete
+  string delete_id = 2;
+}
+
+// Empty response
+message ScoutDeleteResponse {
+  // Server information
+  ServerInfo server = 1;
+}
+
+message ScoutStreamDataRequest {
+  ClientInfo client = 1;
+}
+
+message ScoutStreamDataResponse {
+  // Server information
+  ServerInfo server = 1;
+  // Random data
+  int32 random_number = 2;
+}
+
+message ScoutPingRequest {
+  ClientInfo client = 1;
+}
+
+message ScoutPingResponse {
+  // Server information
+  ServerInfo server = 1;
+}
+
+service ScoutIdentity {
+  rpc Version(ScoutIdentityVersionRequest)
+    returns (ScoutIdentityVersionResponse) {
+      option(google.api.http) = {
+        get: "/v1/identity/version"
+      };
+    }
+}
+
+// Empty request
+message ScoutIdentityVersionRequest {
+}
+
+// Defines the response to version
+message ScoutIdentityVersionResponse {
+  // Scout application version
+  ScoutVersion Scout_version = 1;
+}
+
+// Scout version in Major.Minor.Patch format. The goal of this
+// message is to provide clients a method to determine the server
+// and client versions.
+message ScoutVersion {
+
+  // These values are constants that can be used by the
+  // client and server applications
+  enum Version {
+    // Allows multiple values to be set to the same integer
+    // Set when needed
+    option allow_alias = true;
+
+    // Must be set in the proto file; ignore.
+    MUST_HAVE_ZERO_VALUE = 0;
+
+    // Version major value of this specification
+    MAJOR = 0;
+    // Version minor value of this specification
+    MINOR = 0;
+    // Version patch value of this specification
+    PATCH = 1;
+  }
+
+  // The following cannot be set to use the enum Version because the REST
+  // Gateway would then return the string value of the enum.
+
+  // Version major number
+  int32 major = 1;
+  // Version minor number
+  int32 minor = 2;
+  // Version patch number
+  int32 patch = 3;
+  // String representation of the version. Must be
+  // in `major.minor.patch` format.
+  string version = 4;
+}
