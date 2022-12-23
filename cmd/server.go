@@ -39,7 +39,7 @@ func main() {
 	})
 	config := &server.ServerConfig{
 		Name:         "scout",
-		Address:      "127.0.0.1:9009",
+		Address:      ":9009",
 		Socket:       scoutSocket,
 		AuditOutput:  os.Stdout,
 		AccessOutput: os.Stdout,
