@@ -29,8 +29,8 @@ items:
               command:
                 - /rpcscout
               args:
-                - --grpc-listen=9009
-                - --rest-listen=9010
+                - --grpc-listen=:9009
+                - --rest-listen=:9010
               image: quay.io/lpabon/rpcscout
               imagePullPolicy: Always
               ports:
