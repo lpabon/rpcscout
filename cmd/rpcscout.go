@@ -17,11 +17,13 @@ package main
 
 import (
 	"flag"
+	"os"
 	"strings"
 
 	"github.com/libopenstorage/grpc-framework/pkg/util"
 	"github.com/lpabon/lputils"
 	clientcmd "github.com/lpabon/rpcscout/cmd/client"
+	servercmd "github.com/lpabon/rpcscout/cmd/server"
 	pkgopts "github.com/lpabon/rpcscout/pkg/opts"
 )
 
@@ -35,9 +37,12 @@ func init() {
 	flag.StringVar(&opts.Name, "name", "", "Name for this scout. If no name provided it will create one")
 	flag.BoolVar(&opts.UseTls, "usetls", false, "Connect to server using TLS. Loads CA from the system")
 	flag.StringVar(&opts.Token, "token", "", "Authorization token if any")
-	flag.StringVar(&grpcAddresses, "grpc-addresses", "127.0.0.1:9009", "Comma separated addresses to Scout gRPC servers as <address>:<port>")
-	flag.StringVar(&restAddresses, "rest-addresses", "127.0.0.1:9010", "Comma separated addresses to Scout REST servers as <address>:<port>")
+	flag.StringVar(&grpcAddresses, "grpc-addresses", "", "Comma separated addresses to Scout gRPC servers as <address>:<port>")
+	flag.StringVar(&restAddresses, "rest-addresses", "", "Comma separated addresses to Scout REST servers as <address>:<port>")
 	flag.IntVar(&opts.MaxPingDuration, "max-ping-duration", 10, "Maximum ping loop duration in seconds")
+	flag.StringVar(&opts.GrpcListen, "grpc-listen", "", "Enables gRPC server to listen on the specified address (ex. :9009)")
+	flag.StringVar(&opts.RestListen, "rest-listen", "", "Enables REST server to listen on the specified address (ex. :9010). "+
+		"Note, the rest server is only enabled if the gRPC server is enabled.")
 }
 
 func main() {
@@ -50,18 +55,40 @@ func main() {
 		opts.Name = lputils.GenUUID()[:6]
 	}
 
-	c := clientcmd.New(&clientcmd.Config{
-		Opts: &opts,
-	})
+	var c *clientcmd.Client
+	if len(opts.GrpcAddresses) != 0 || len(opts.RestAddresses) != 0 {
+		c = clientcmd.New(&clientcmd.Config{
+			Opts: &opts,
+		})
+	}
+
+	var s *servercmd.Server
+	if opts.GrpcListen != "" {
+		s = servercmd.New(&servercmd.Config{
+			Opts: &opts,
+		})
+	}
 
 	// Setup CTRL-C handler
 	signal_handler := util.NewSigIntManager(func() {
-		c.Stop()
+		if s != nil {
+			s.Stop()
+		}
+		if c != nil {
+			c.Stop()
+			c.Wait()
+		}
+
+		os.Exit(0)
 	})
 	signal_handler.Start()
 
-	c.Start()
+	if s != nil {
+		s.Start()
+	}
+	if c != nil {
+		c.Start()
+	}
 
-	// Wait for the signal handler to stop the program
-	c.Wait()
+	select {}
 }

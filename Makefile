@@ -4,20 +4,15 @@ TAG = v0.0.6
 IMAGE = quay.io/lpabon/rpcscout
 IMAGETAG = latest
 
-all: proto server client
+all: proto rpcscout
 
 ./bin:
 	mkdir ./bin
 
-server: ./bin
+rpcscout: ./bin
 	CGO_ENABLED=0 GOOS=linux \
 		go build -ldflags '-extldflags "-static"' \
-		-o ./bin/rpcscout-server cmd/server.go
-
-client: ./bin
-	CGO_ENABLED=0 GOOS=linux \
-		go build -ldflags '-extldflags "-static"' \
-		-o ./bin/rpcscout-client cmd/client.go
+		-o ./bin/rpcscout cmd/rpcscout.go
 
 clean:
 	rm -rf ./bin

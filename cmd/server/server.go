@@ -13,72 +13,97 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package server
 
 import (
-	"fmt"
 	"os"
-
-	"github.com/libopenstorage/grpc-framework/pkg/util"
-	"github.com/libopenstorage/grpc-framework/server"
+	"strings"
 
 	"github.com/lpabon/rpcscout/api"
 	scoutserver "github.com/lpabon/rpcscout/pkg/server"
-
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+
+	grpcfwserver "github.com/libopenstorage/grpc-framework/server"
+	pkgopts "github.com/lpabon/rpcscout/pkg/opts"
 )
+
+type Config struct {
+	Opts *pkgopts.Opts
+}
+
+type Server struct {
+	config       *Config
+	serverConfig *grpcfwserver.ServerConfig
+	grpcfwServer *grpcfwserver.Server
+}
 
 const (
 	scoutSocket = "/tmp/scout-server.sock"
 )
 
-func main() {
+func New(config *Config) *Server {
+	return &Server{
+		config: config,
+	}
+}
+
+func (s *Server) Start() {
 	scout := scoutserver.NewScoutServer(&scoutserver.ScoutServerConfig{
-		Name: "scoutserver",
+		Name: s.opts().Name,
 	})
-	config := &server.ServerConfig{
+	config := &grpcfwserver.ServerConfig{
 		Name:         "scout",
-		Address:      ":9009",
+		Address:      s.opts().GrpcListen,
 		Socket:       scoutSocket,
 		AuditOutput:  os.Stdout,
 		AccessOutput: os.Stdout,
 	}
 	config.
-		WithDefaultRestServer("9010").
 		RegisterGrpcServers(func(gs *grpc.Server) {
 			api.RegisterScoutServer(gs, scout)
 			api.RegisterScoutIdentityServer(gs, scout)
-		}).
-		RegisterRestHandlers(
-			api.RegisterScoutHandler,
-			api.RegisterScoutIdentityHandler,
-		).WithDefaultRateLimiters()
+		}).WithDefaultRateLimiters()
+
+	// Enable REST if requested
+	if s.opts().RestListen != "" {
+		parts := strings.Split(s.opts().RestListen, ":")
+		port := parts[0]
+		if len(parts) > 1 {
+			port = parts[1]
+		}
+
+		config.
+			WithDefaultRestServer(port).
+			RegisterRestHandlers(
+				api.RegisterScoutHandler,
+				api.RegisterScoutIdentityHandler,
+			)
+	}
 
 	// Create grpc framework server
 	os.Remove(scoutSocket)
-	s, err := server.New(config)
+	var err error
+	s.grpcfwServer, err = grpcfwserver.New(config)
 	if err != nil {
-		fmt.Printf("Unable to create server: %v", err)
-		os.Exit(1)
+		logrus.Fatalf("Unable to create server: %v", err)
 	}
 
-	// Setup a signal handler
-	signal_handler := util.NewSigIntManager(func() {
-		s.Stop()
-		os.Remove(scoutSocket)
-		os.Exit(0)
-	})
-	signal_handler.Start()
-
 	// Start server
-	err = s.Start()
+	err = s.grpcfwServer.Start()
 	if err != nil {
-		fmt.Printf("Unable to start server: %v", err)
-		os.Exit(1)
+		logrus.Fatalf("Unable to start server: %v", err)
 	}
 
 	// Wait. The signal handler will exit cleanly
 	logrus.Info("Scout server running")
-	select {}
+}
+
+func (s *Server) Stop() {
+	s.grpcfwServer.Stop()
+	os.Remove(scoutSocket)
+}
+
+func (s *Server) opts() *pkgopts.Opts {
+	return s.config.Opts
 }

@@ -27,7 +27,10 @@ items:
           containers:
             - name: server
               command:
-                - /rpcscout-server
+                - /rpcscout
+              args:
+                - --grpc-listen=9009
+                - --rest-listen=9010
               image: quay.io/lpabon/rpcscout
               imagePullPolicy: Always
               ports:
@@ -57,7 +60,7 @@ items:
           containers:
             - name: client
               command:
-                - /rpcscout-client
+                - /rpcscout
               args:
                 - '--grpc-addresses=scout-simple-server:9009'
                 - '--rest-addresses=scout-simple-server:9010'

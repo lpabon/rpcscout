@@ -1,3 +1,3 @@
 FROM alpine
 
-COPY bin/* /
+COPY bin/rpcscout /

@@ -22,6 +22,8 @@ type Opts struct {
 	RestAddresses   []string
 	MaxPingDuration int
 	Name            string
+	GrpcListen      string
+	RestListen      string
 }
 
 const (
