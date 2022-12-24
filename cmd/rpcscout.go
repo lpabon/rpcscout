@@ -56,7 +56,7 @@ func main() {
 	}
 
 	var c *clientcmd.Client
-	if len(opts.GrpcAddresses) != 0 || len(opts.RestAddresses) != 0 {
+	if grpcAddresses != "" || restAddresses != "" {
 		c = clientcmd.New(&clientcmd.Config{
 			Opts: &opts,
 		})
