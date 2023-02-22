@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: scout-simple
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: scout-simple-server
+      labels:
+        name: scout-simple-server
+        app: scout-simple-server
+      namespace: scout-simple
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: scout-simple-server
+      template:
+        metadata:
+          labels:
+            name: scout-simple-server
+            app: scout-simple-server
+        spec:
+          containers:
+            - name: server
+              command:
+                - /rpcscout
+              args:
+                - --grpc-listen=:9009
+                - --rest-listen=:9010
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 9009
+                  protocol: TCP
+                - containerPort: 9010
+                  protocol: TCP
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: scout-simple-client
+      labels:
+        name: scout-simple-client
+        app: scout-simple-client
+      namespace: scout-simple
+    spec:
+      replicas: 10
+      selector:
+        matchLabels:
+          app: scout-simple-client
+      template:
+        metadata:
+          labels:
+            name: scout-simple-client
+            app: scout-simple-client
+        spec:
+          containers:
+            - name: client
+              command:
+                - /rpcscout
+              args:
+                - '--grpc-addresses=scout-simple-server:9009'
+                - '--rest-addresses=scout-simple-server:9010'
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: scout-simple-server
+      labels:
+        name: scout-simple-server
+        app: scout-simple-server
+      namespace: scout-simple
+    spec:
+      ports:
+        - name: server-grpc
+          port: 9009
+          protocol: TCP
+        - name: server-rest
+          port: 9010
+          protocol: TCP
+      selector:
+        name: scout-simple-server
+        app: scout-simple-server

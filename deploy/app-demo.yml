@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: scout-app-demo
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: db
+      labels:
+        app: db
+      namespace: scout-app-demo
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: db
+      template:
+        metadata:
+          labels:
+            app: db
+        spec:
+          containers:
+            - name: db
+              command:
+                - /rpcscout
+              args:
+                - --grpc-listen=:3306
+                - --rest-listen=:3307
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 3306
+                  protocol: TCP
+                - containerPort: 3307
+                  protocol: TCP
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: db
+      labels:
+        app: db
+      namespace: scout-app-demo
+    spec:
+      ports:
+        - name: db-grpc
+          port: 3306
+          protocol: TCP
+        - name: db-rest
+          port: 3307
+          protocol: TCP
+      selector:
+        app: db
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: workers
+      labels:
+        app: workers
+      namespace: scout-app-demo
+    spec:
+      replicas: 5
+      selector:
+        matchLabels:
+          app: workers
+      template:
+        metadata:
+          labels:
+            app: workers
+        spec:
+          containers:
+            - name: worker
+              command:
+                - /rpcscout
+              args:
+                - --grpc-listen=:9009
+                - --rest-listen=:9010
+                - '--grpc-addresses=db:3306'
+                - '--rest-addresses=db:3307'
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: workers
+      labels:
+        app: workers
+      namespace: scout-app-demo
+    spec:
+      ports:
+        - name: worker-grpc
+          port: 9009
+          protocol: TCP
+        - name: worker-rest
+          port: 9010
+          protocol: TCP
+      selector:
+        app: workers
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: api
+      labels:
+        app: api
+      namespace: scout-app-demo
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: api
+      template:
+        metadata:
+          labels:
+            app: api
+        spec:
+          containers:
+            - name: api
+              command:
+                - /rpcscout
+              args:
+                - --grpc-listen=:8090
+                - --rest-listen=:8080
+                - '--grpc-addresses=workers:9009'
+                - '--rest-addresses=workers:9010'
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: api
+      labels:
+        app: api
+      namespace: scout-app-demo
+    spec:
+      ports:
+        - name: api-grpc
+          port: 8090
+          protocol: TCP
+        - name: api-rest
+          port: 8080
+          protocol: TCP
+      selector:
+        app: api
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: client
+      labels:
+        app: client
+      namespace: scout-app-demo
+    spec:
+      replicas: 10
+      selector:
+        matchLabels:
+          app: client
+      template:
+        metadata:
+          labels:
+            app: client
+        spec:
+          containers:
+            - name: client
+              command:
+                - /rpcscout
+              args:
+                - '--grpc-addresses=api:8090'
+                - '--rest-addresses=api:8080'
+              image: quay.io/lpabon/rpcscout
+              imagePullPolicy: Always
+
