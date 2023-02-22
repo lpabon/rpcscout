@@ -40,9 +40,15 @@ func New(config *Config) *Client {
 
 func (c *Client) Start() {
 	for _, address := range c.opts().GrpcAddresses {
+		if address == "" {
+			continue
+		}
 		c.grpc(address)
 	}
 	for _, address := range c.opts().RestAddresses {
+		if address == "" {
+			continue
+		}
 		c.rest(address)
 	}
 
