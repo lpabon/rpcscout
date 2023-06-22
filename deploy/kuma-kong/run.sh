@@ -10,6 +10,7 @@ if [ "$1" = "apply" ] ; then
     done
 elif [ "$1" = "delete" ] ; then
     for app in $apps ; do
+        sed -e "s#@@NS@@#${app}#g" tmpl-app-demo.yml | kubectl delete -f -
         sed -e "s#@@NS@@#${app}#g" tmpl-kong.yml | kubectl delete -f -
     done
     kubectl delete -f kong-crds.yml
